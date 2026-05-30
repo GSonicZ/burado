@@ -1,3 +1,5 @@
+# it a fork for personal use
+
 # Burado Thumbnail Maker 
 
 [https://fiend3d.github.io/burado/](https://fiend3d.github.io/burado/)
