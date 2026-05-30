@@ -1,4 +1,4 @@
-# it a fork for personal use
+### it a fork for personal use
 
 # Burado Thumbnail Maker 
 
