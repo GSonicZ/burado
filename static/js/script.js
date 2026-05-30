@@ -42,6 +42,9 @@ for (const item of assets.chars.chars) {
   chars_map.set(item.toLowerCase(), `${assets.chars.directory}/${item}.png`);
 }
 
+// Declare characters early so draw_thumbnail() can reference it
+const characters = {};
+
 // Helper: bind a range slider to its output label
 function bind_range(id, redraw_fn) {
   const el = document.getElementById(id);
@@ -51,14 +54,12 @@ function bind_range(id, redraw_fn) {
   return el;
 }
 
-// Helper: bind a color picker
 function bind_color(id, redraw_fn) {
   const el = document.getElementById(id);
   el.addEventListener("input", () => redraw_fn());
   return el;
 }
 
-// Helper: bind a text input
 function bind_text(id, redraw_fn) {
   const el = document.getElementById(id);
   el.addEventListener("input", () => redraw_fn());
@@ -66,31 +67,31 @@ function bind_text(id, redraw_fn) {
 }
 
 // --- Abyss label inputs ---
-const abyss_label_first       = bind_text("abyss_label_first",       () => draw_thumbnail());
-const abyss_label_second      = bind_text("abyss_label_second",      () => draw_thumbnail());
+const abyss_label_first      = bind_text("abyss_label_first",       () => draw_thumbnail());
+const abyss_label_second     = bind_text("abyss_label_second",      () => draw_thumbnail());
 
-const abyss_fill_color        = bind_color("abyss_fill_color",       () => draw_thumbnail());
-const abyss_border_color      = bind_color("abyss_border_color",     () => draw_thumbnail());
-const abyss_border_width      = bind_range("abyss_border_width",     () => draw_thumbnail());
+const abyss_fill_color       = bind_color("abyss_fill_color",       () => draw_thumbnail());
+const abyss_border_color     = bind_color("abyss_border_color",     () => draw_thumbnail());
+const abyss_border_width     = bind_range("abyss_border_width",     () => draw_thumbnail());
 
-const abyss_first_font_size   = bind_range("abyss_first_font_size",  () => draw_thumbnail());
-const abyss_first_x           = bind_range("abyss_first_x",          () => draw_thumbnail());
-const abyss_first_y           = bind_range("abyss_first_y",          () => draw_thumbnail());
+const abyss_first_font_size  = bind_range("abyss_first_font_size",  () => draw_thumbnail());
+const abyss_first_x          = bind_range("abyss_first_x",          () => draw_thumbnail());
+const abyss_first_y          = bind_range("abyss_first_y",          () => draw_thumbnail());
 
-const abyss_second_font_size  = bind_range("abyss_second_font_size", () => draw_thumbnail());
-const abyss_second_x          = bind_range("abyss_second_x",         () => draw_thumbnail());
-const abyss_second_y          = bind_range("abyss_second_y",         () => draw_thumbnail());
+const abyss_second_font_size = bind_range("abyss_second_font_size", () => draw_thumbnail());
+const abyss_second_x         = bind_range("abyss_second_x",         () => draw_thumbnail());
+const abyss_second_y         = bind_range("abyss_second_y",         () => draw_thumbnail());
 
 // --- Icon inputs ---
-const abyss_icon_x            = bind_range("abyss_icon_x",           () => draw_thumbnail());
-const abyss_icon_y            = bind_range("abyss_icon_y",           () => draw_thumbnail());
-const abyss_icon_scale        = bind_range("abyss_icon_scale",       () => draw_thumbnail());
+const abyss_icon_x           = bind_range("abyss_icon_x",           () => draw_thumbnail());
+const abyss_icon_y           = bind_range("abyss_icon_y",           () => draw_thumbnail());
+const abyss_icon_scale       = bind_range("abyss_icon_scale",       () => draw_thumbnail());
 
 // --- Background inputs ---
-const background_left_shift   = bind_range("background_left_shift",  () => draw_thumbnail());
-const background_right_shift  = bind_range("background_right_shift", () => draw_thumbnail());
-const background_blend        = bind_range("background_blend",       () => draw_thumbnail());
-const background_blend_value  = document.getElementById("background_blend_value");
+const background_left_shift  = bind_range("background_left_shift",  () => draw_thumbnail());
+const background_right_shift = bind_range("background_right_shift", () => draw_thumbnail());
+const background_blend       = bind_range("background_blend",       () => draw_thumbnail());
+const background_blend_value = document.getElementById("background_blend_value");
 
 // --- Paste / file areas ---
 const paste_area_left  = document.getElementById('paste_area_left');
@@ -101,10 +102,10 @@ const file_input_right = document.getElementById('file_input_right');
 let background_left;
 let background_right;
 
-paste_area_left.addEventListener('paste',  (e) => { background_left  = handle_paste(e); });
-file_input_left.addEventListener('change', (e) => { background_left  = handle_file_select(e); });
-paste_area_right.addEventListener('paste', (e) => { background_right = handle_paste(e); });
-file_input_right.addEventListener('change',(e) => { background_right = handle_file_select(e); });
+paste_area_left.addEventListener('paste',   (e) => { background_left  = handle_paste(e); });
+file_input_left.addEventListener('change',  (e) => { background_left  = handle_file_select(e); });
+paste_area_right.addEventListener('paste',  (e) => { background_right = handle_paste(e); });
+file_input_right.addEventListener('change', (e) => { background_right = handle_file_select(e); });
 
 function handle_paste(event) {
   const clipboardData = event.clipboardData || window.clipboardData;
@@ -144,7 +145,7 @@ four_star_checkbox.addEventListener("input", () => draw_thumbnail());
 question_checkbox.addEventListener("input",  () => draw_thumbnail());
 epic_fail_checkbox.addEventListener("input", () => draw_thumbnail());
 
-// --- Draw ---
+// --- Draw helpers ---
 function draw_text_line(text, x, y, fontSize, fillColor, borderColor, borderWidth) {
   ctx.font = `bold ${fontSize}px Arial`;
   ctx.strokeStyle = borderColor;
@@ -165,7 +166,7 @@ function draw_thumbnail() {
   const py = 98;
   const shift_left  = -parseInt(background_left_shift.value, 10);
   const shift_right = -parseInt(background_right_shift.value, 10);
-  const blend = parseInt(background_blend_value.textContent || background_blend.value, 10);
+  const blend = parseInt(background_blend.value, 10);
   const mid = 640;
   const h   = 720;
 
@@ -198,12 +199,11 @@ function draw_thumbnail() {
   const iconScale = parseInt(abyss_icon_scale.value, 10) / 100;
   ctx.drawImage(assets.abyss_12, iconX, iconY, assets.abyss_12.width * iconScale, assets.abyss_12.height * iconScale);
 
-  // Shared style values
+  // Text lines
   const fillColor   = abyss_fill_color.value;
   const borderColor = abyss_border_color.value;
   const borderWidth = parseInt(abyss_border_width.value, 10);
 
-  // First line — independent position & font size
   draw_text_line(
     abyss_label_first.value,
     parseInt(abyss_first_x.value, 10),
@@ -212,7 +212,6 @@ function draw_thumbnail() {
     fillColor, borderColor, borderWidth
   );
 
-  // Second line — independent position & font size
   draw_text_line(
     abyss_label_second.value,
     parseInt(abyss_second_x.value, 10),
@@ -237,7 +236,6 @@ function draw_thumbnail() {
 draw_thumbnail();
 
 // --- Character inputs ---
-const characters = {};
 const character_inputs = {};
 character_inputs.left1  = document.getElementById('first_team1');
 character_inputs.left2  = document.getElementById('first_team2');
