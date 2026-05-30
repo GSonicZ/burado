@@ -1,6 +1,7 @@
 # Burado Thumbnail Maker 
 
 [https://fiend3d.github.io/burado/](https://fiend3d.github.io/burado/)
+
 [https://gsonicz.github.io/burado/](https://gsonicz.github.io/burado/)
 
 I built this to create thumbnails for my [YouTube channel](https://www.youtube.com/@buradoplays), replacing a simpler Python script I used before.
