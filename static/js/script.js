@@ -69,6 +69,9 @@ function bind_text(id, redraw_fn) {
 // --- Abyss label inputs ---
 const abyss_label_first      = bind_text("abyss_label_first",       () => draw_thumbnail());
 const abyss_label_second     = bind_text("abyss_label_second",      () => draw_thumbnail());
+const abyss_label_left       = bind_text("abyss_label_left",         () => draw_thumbnail());
+const abyss_label_right      = bind_text("abyss_label_right",        () => draw_thumbnail());
+const bottom_font_size       = bind_range("bottom_font_size",        () => draw_thumbnail());
 
 const abyss_fill_color       = bind_color("abyss_fill_color",       () => draw_thumbnail());
 const abyss_border_color     = bind_color("abyss_border_color",     () => draw_thumbnail());
@@ -219,6 +222,13 @@ function draw_thumbnail() {
     parseInt(abyss_second_font_size.value, 10),
     fillColor, borderColor, borderWidth
   );
+
+  // Bottom left/right labels
+  const left_line  = abyss_label_left.value;
+  const right_line = abyss_label_right.value;
+  const bottomY = canvas.height - 80;
+  if (left_line)  draw_text_line(left_line,  canvas.width / 4,       bottomY, parseInt(bottom_font_size.value, 10), fillColor, borderColor, borderWidth);
+  if (right_line) draw_text_line(right_line, (canvas.width / 4) * 3, bottomY, parseInt(bottom_font_size.value, 10), fillColor, borderColor, borderWidth);
 
   // Characters
   if (characters.left1)  ctx.drawImage(characters.left1,  0, 0, characters.left1.width,  characters.left1.height,  0,    50,  200, 200);
