@@ -19,25 +19,85 @@ def rename_constellation_file(filename):
 
 
 def rename_face_file(filename):
-    """Face icons keep their original name, just sanitized"""
-    return filename
+    """Strip ' Icon.png' suffix and convert spaces to underscores"""
+    new_name = filename.replace(" Icon.png", ".png")
+    new_name = new_name.replace(" ", "_")
+    return new_name
+
+# Categories on the wiki listing characters as normal article pages
+ROSTER_CATEGORIES = ["Playable_Characters", "Upcoming_Characters"]
 
 CATEGORIES = [
     {
         "category": "Playable_Character_Icons",
         "subfolder": "face_icons",
-        "skip_if_contains": ["Aether", "Lumine"],
+        "skip_if_contains": ["Aether", "Lumine", "Traveler", "Manekin", "Manekina", "Dainsleif"],
         "rename": rename_face_file,
+        # Builds the expected filename for a character not yet in the category.
+        # Safe even if the file doesn't exist yet - it'll just be logged as
+        # "Failed to get URL" and skipped, no crash.
+        "filename_template": lambda name: f"{name} Icon.png",
     },
     {
         "category": "Character_Item_Icons",
         "subfolder": "constellation_icons",
-        "skip_if_contains": ["Aether", "Lumine"],
+        "skip_if_contains": ["Aether", "Lumine", "Traveler", "Manekin", "Manekina", "Dainsleif"],
         "rename": rename_constellation_file,
+        "filename_template": lambda name: f"{name} Item.png",
     },
 ]
 
 session = requests.Session()
+
+
+_roster_cache = None
+
+def get_character_roster():
+    """Get every playable AND upcoming (announced but not released) character name.
+    These are normal article pages (namespace 0), not files. Cached after first call."""
+    global _roster_cache
+    if _roster_cache is not None:
+        return _roster_cache
+
+    names = []
+    seen = set()
+
+    for category in ROSTER_CATEGORIES:
+        print(f"Fetching character roster from Category:{category}...")
+        continue_token = None
+
+        while True:
+            params = {
+                "action": "query",
+                "list": "categorymembers",
+                "cmtitle": f"Category:{category}",
+                "cmlimit": 500,
+                "format": "json",
+                "cmnamespace": 0
+            }
+
+            if continue_token:
+                params["cmcontinue"] = continue_token
+
+            response = session.get(API_ENDPOINT, params=params)
+            response.raise_for_status()
+            data = response.json()
+
+            for member in data["query"]["categorymembers"]:
+                title = member["title"]
+                # Skip subpages like "Varka/Gallery" - only want the character's own page
+                if "/" not in title and title not in seen:
+                    names.append(title)
+                    seen.add(title)
+
+            if "continue" in data:
+                continue_token = data["continue"]["cmcontinue"]
+            else:
+                break
+
+    print(f"Found {len(names)} characters (playable + upcoming)")
+    _roster_cache = names
+    return names
 
 
 def get_all_files_in_category(category_name):
@@ -142,13 +202,31 @@ def download_category(category_config):
     subfolder = category_config["subfolder"]
     skip_if_contains = category_config["skip_if_contains"]
     rename_fn = category_config["rename"]
+    filename_template = category_config.get("filename_template")
 
     download_folder = os.path.join(DOWNLOAD_FOLDER, subfolder)
     os.makedirs(download_folder, exist_ok=True)
     print(f"\n=== Category: {category_name} -> {os.path.abspath(download_folder)} ===")
 
-    # Step 1: Get all file titles
+    # Step 1: Get all file titles from the category, plus auto-generated
+    # candidates for every known character (covers files not yet categorized
+    # or not yet uploaded - those just get skipped later, no crash).
     file_titles = get_all_files_in_category(category_name)
+
+    if filename_template:
+        roster = get_character_roster()
+        existing = set(file_titles)
+        added = 0
+        for name in roster:
+            if any(skip_text in name for skip_text in skip_if_contains):
+                continue
+            candidate = f"File:{filename_template(name)}"
+            if candidate not in existing:
+                file_titles.append(candidate)
+                existing.add(candidate)
+                added += 1
+        if added:
+            print(f"  Added {added} auto-generated candidate(s) from character roster")
 
     if not file_titles:
         print("No files found in category!")
