@@ -26,7 +26,7 @@ CATEGORIES = [
     {
         "category": "Playable_Character_Icons",
         "subfolder": "face_icons",
-        "skip_if_contains": [],
+        "skip_if_contains": ["Aether", "Lumine"],
         "rename": rename_face_file,
     },
     {
