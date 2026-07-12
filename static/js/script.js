@@ -200,8 +200,9 @@ function draw_thumbnail() {
   const iconX     = parseInt(abyss_icon_x.value, 10);
   const iconY     = parseInt(abyss_icon_y.value, 10);
   const iconScale = parseInt(abyss_icon_scale.value, 10) / 100;
-  ctx.drawImage(assets.abyss_12, iconX, iconY, assets.abyss_12.width * iconScale, assets.abyss_12.height * iconScale);
-
+  const iconW     = assets.abyss_12.width * iconScale;
+  const iconH     = assets.abyss_12.height * iconScale;
+  ctx.drawImage(assets.abyss_12, iconX - iconW / 2, iconY - iconH / 2, iconW, iconH);
   // Text lines
   const fillColor   = abyss_fill_color.value;
   const borderColor = abyss_border_color.value;
