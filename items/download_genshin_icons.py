@@ -303,12 +303,41 @@ def download_category(category_config):
     print(f"✗ Failed: {failed}")
 
 
+
+def convert_folder_to_png(folder):
+    """Convert all files in folder to real PNG using Pillow (fixes WebP disguised as .png)"""
+    from PIL import Image
+    import io
+
+    files = [f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]
+    print(f"\nConverting {len(files)} files in {folder} to real PNG...")
+    converted = 0
+    failed = 0
+    for filename in files:
+        filepath = os.path.join(folder, filename)
+        try:
+            with open(filepath, "rb") as f:
+                raw = f.read()
+            img = Image.open(io.BytesIO(raw)).convert("RGBA")
+            img.save(filepath, "PNG")
+            converted += 1
+        except Exception as e:
+            print(f"  Failed to convert {filename}: {e}")
+            failed += 1
+    print(f"  ✓ Converted: {converted}  ✗ Failed: {failed}")
+
 def main():
     """Main execution"""
     print(f"Icons will be saved under: {os.path.abspath(DOWNLOAD_FOLDER)}")
 
     for category_config in CATEGORIES:
         download_category(category_config)
+
+    # Convert all downloaded files to real PNG
+    for category_config in CATEGORIES:
+        subfolder = os.path.join(DOWNLOAD_FOLDER, category_config["subfolder"])
+        if os.path.isdir(subfolder):
+            convert_folder_to_png(subfolder)
 
     print("\nAll categories complete!")
 
